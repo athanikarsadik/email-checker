@@ -1,0 +1,14 @@
+{
+    "imap_providers": {
+        "outlook": "outlook.office365.com",
+        "hotmail": "outlook.live.com",
+        "msn": "outlook.live.com",
+        "live": "outlook.live.com",
+        "office 365": "outlook.live.com",
+        "trythisdomaintest.com": "imap.gmail.com"
+    },
+    "proxy": "user:pass@host:port", 
+    "threads": 10,
+    "retry_attempts": 5,
+    "retry_timeout": 10
+}
