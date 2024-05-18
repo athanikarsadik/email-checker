@@ -48,6 +48,25 @@ def discover_imap_server(domain, config):
     return None
 
 def test_imap_connection(server, config):
+    """Tests the IMAP connection to a server.
+
+    Args:
+        server (str): The IMAP server address.
+        config (dict): The configuration settings.
+
+    Returns:
+        bool: True if the connection is successful (login success or wrong credentials),
+              False otherwise.
+    """
+
+    for attempt in range(config["retry_attempts"]):
+        try:
+            with imaplib.IMAP4_SSL(server) as imap:
+                return True  # Connection successful, regardless of login
+        except (imaplib.IMAP4.error, socket.gaierror, socket.timeout) as e:
+            print(f"Connection error to {server}: {e}. Retrying...")
+            time.sleep(config["retry_timeout"])
+
     return False  # Connection failed after all retries
 
 def update_imap_providers(config, domain, server):

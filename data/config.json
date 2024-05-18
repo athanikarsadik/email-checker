@@ -9,7 +9,11 @@
         "hotmail.com": "imap.gmail.com",
         "msn.com": "imap.gmail.com",
         "live.co.uk": "imap.gmail.com",
-        "hotmail.fr": "imap.gmail.com"
+        "hotmail.fr": "imap.gmail.com",
+        "outlook.com": "imap.outlook.com",
+        "t-online.de": "imap.t-online.de",
+        "buzanet.co.za": "mail.buzanet.co.za",
+        "hotmail.co.uk": "imap.gmail.com"
     },
     "proxy": "104.243.45.62:4000:datacenter--uname--arara669i7r6yn0b7ogo:l2kdxdbdx2sg",
     "threads": 10,
