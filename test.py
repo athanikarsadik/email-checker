@@ -6,10 +6,10 @@ import base64
 import os
 import re
 
-imap_ssl_host = 'imap.gmail.com'
+imap_ssl_host = 'outlook.office365.com'
 imap_ssl_port = 993
-username = 'service.digital-streed@t-online.de'
-password = 'pinkfloyd84'
+username = 'gmarina12@hotmail.com'
+password = 'Msandrine12'
 
 criteria = {}
 uid_max = 0

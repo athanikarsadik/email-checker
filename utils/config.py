@@ -46,4 +46,4 @@ def save_config(config, imap_file="data/imap_provider.json"):
     """
 
     with open(imap_file, "w") as f:
-        json.dump(config, f, indent=4)
+        json.dump(config["imap_providers"], f, indent=4)

@@ -20,11 +20,15 @@ def get_imap_server(email, config):
         str: The IMAP server address, or None if not found.
     """
 
-    domain = email.split('@')[1]
     imap_providers = config["imap_providers"]
+
+    domain = email.split('@')[1].lower()
+    top_level_domain = ".".join(domain.split('.')[-2:])  # Extract top-level domain
 
     if domain in imap_providers:
         return imap_providers[domain]
+    elif top_level_domain in imap_providers:  # Check for top-level domain
+        return imap_providers[top_level_domain]
     else:
         return discover_imap_server(domain, config)
 
