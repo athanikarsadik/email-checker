@@ -8,8 +8,8 @@ import re
 
 imap_ssl_host = 'imap.gmail.com'
 imap_ssl_port = 993
-username = 'allesinklusive@t-online.de'
-password = 'Senderstadt'
+username = 'service.digital-streed@t-online.de'
+password = 'pinkfloyd84'
 
 criteria = {}
 uid_max = 0
