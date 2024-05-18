@@ -5,9 +5,13 @@
         "msn": "outlook.live.com",
         "live": "outlook.live.com",
         "office 365": "outlook.live.com",
-        "trythisdomaintest.com": "imap.gmail.com"
+        "trythisdomaintest.com": "imap.gmail.com",
+        "hotmail.com": "imap.gmail.com",
+        "msn.com": "imap.gmail.com",
+        "live.co.uk": "imap.gmail.com",
+        "hotmail.fr": "imap.gmail.com"
     },
-    "proxy": "user:pass@host:port", 
+    "proxy": "104.243.45.62:4000:datacenter--uname--arara669i7r6yn0b7ogo:l2kdxdbdx2sg",
     "threads": 10,
     "retry_attempts": 5,
     "retry_timeout": 10

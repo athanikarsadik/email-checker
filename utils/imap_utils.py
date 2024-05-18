@@ -1,6 +1,7 @@
 import imaplib
 import socket
 import time
+import socks
 
 def get_imap_server(email, config):
     """Gets the IMAP server address for an email address.
@@ -48,21 +49,25 @@ def discover_imap_server(domain, config):
     return None
 
 def test_imap_connection(server, config):
-    """Tests the IMAP connection to a server.
+    """Tests the IMAP connection to a server using a rotating proxy."""
 
-    Args:
-        server (str): The IMAP server address.
-        config (dict): The configuration settings.
-
-    Returns:
-        bool: True if the connection is successful (login success or wrong credentials),
-              False otherwise.
-    """
-
+    proxy_host, proxy_port, proxy_user, proxy_pass = config["proxy"].split(":")
+    print("test_imap_connection")
     for attempt in range(config["retry_attempts"]):
         try:
-            with imaplib.IMAP4_SSL(server) as imap:
-                return True  # Connection successful, regardless of login
+            # Create a custom socket
+            proxy_type = socks.HTTP  # Use socks.SOCKS4 or socks.SOCKS5 if needed
+            s = socks.socksocket()
+            s.set_proxy(proxy_type, proxy_host, int(proxy_port), True, proxy_user, proxy_pass)
+            s.connect((server, 993))  # Connect to the IMAP server on port 993
+
+            # Create the IMAP object 
+            imap = imaplib.IMAP4_SSL(server, ssl_context=None) 
+
+            # Replace the IMAP's socket with the custom socket
+            imap.sock = s
+
+            return True  # Connection successful
         except (imaplib.IMAP4.error, socket.gaierror, socket.timeout) as e:
             print(f"Connection error to {server}: {e}. Retrying...")
             time.sleep(config["retry_timeout"])
@@ -84,24 +89,28 @@ def update_imap_providers(config, domain, server):
     print(f"IMAP server for {domain} updated to {server} in config file.")
     
 def validate_email(email, password, imap_server, config):
-    """Validates an email address by attempting to log in to the IMAP server.
-
-    Args:
-        email (str): The email address.
-        password (str): The password for the email account.
-        imap_server (str): The IMAP server address.
-        config (dict): The configuration settings.
-
-    Returns:
-        bool: True if the email is valid (login successful), False otherwise.
-    """
+    """Validates an email address using a rotating proxy."""
+    proxy_host, proxy_port, proxy_user, proxy_pass = config["proxy"].split(":")
 
     for attempt in range(config["retry_attempts"]):
+        print(attempt)
         try:
-            with imaplib.IMAP4_SSL(imap_server) as imap:
-                imap.login(email, password)
-                imap.logout()
-                return True  # Login successful
+            # Create a custom socket (same as in test_imap_connection)
+            proxy_type = socks.HTTP  # Use socks.SOCKS4 or socks.SOCKS5 if needed
+            s = socks.socksocket()
+            s.set_proxy(proxy_type, proxy_host, int(proxy_port), True, proxy_user, proxy_pass)
+            s.connect((imap_server, 993))  # Connect to the IMAP server on port 993
+
+            # Create the IMAP object 
+            imap = imaplib.IMAP4_SSL(imap_server, ssl_context=None) 
+
+            # Replace the IMAP's socket with the custom socket
+            imap.sock = s
+
+            imap.login(email, password)
+            imap.logout()
+            return True  # Login successful
+
         except imaplib.IMAP4.error as e:
             if "Invalid credentials" in str(e):
                 return False  # Invalid credentials, no need to retry
@@ -112,4 +121,39 @@ def validate_email(email, password, imap_server, config):
             print(f"Connection error for {email}: {e}. Retrying...")
             time.sleep(config["retry_timeout"])
 
-    return False  # Login failed after all retries
+    return False
+
+    # """Validates an email address by attempting to log in to the IMAP server.
+
+    # Args:
+    #     email (str): The email address.
+    #     password (str): The password for the email account.
+    #     imap_server (str): The IMAP server address.
+    #     config (dict): The configuration settings.
+
+    # Returns:
+    #     bool: True if the email is valid (login successful), False otherwise.
+    # Validates an email address using a rotating proxy."""
+
+    # proxy_host, proxy_port, proxy_user, proxy_pass = config["proxy"].split(":")
+
+    # for attempt in range(config["retry_attempts"]):
+    #     try:
+    #         with imaplib.IMAP4_SSL(imap_server) as imap:
+    #             imap.socket.setproxy(
+    #                 socket.PROXY_TYPE_HTTP, proxy_host, int(proxy_port), proxy_user, proxy_pass
+    #             )
+    #             imap.login(email, password)
+    #             imap.logout()
+    #             return True  # Login successful
+    #     except imaplib.IMAP4.error as e:
+    #         if "Invalid credentials" in str(e):
+    #             return False  # Invalid credentials, no need to retry
+    #         else:
+    #             print(f"Login error for {email}: {e}. Retrying...")
+    #             time.sleep(config["retry_timeout"])
+    #     except (socket.gaierror, socket.timeout) as e:
+    #         print(f"Connection error for {email}: {e}. Retrying...")
+    #         time.sleep(config["retry_timeout"])
+
+    # return False  # Login failed after all retries

@@ -32,6 +32,9 @@ def write_to_file(email, filename):
 if __name__ == "__main__":
     config = load_config()
     email_list = load_email_list()
+    
+    # Parse the proxy string
+    # config["proxy"] = "104.243.45.62:4000:datacenter--uname--arara669i7r6yn0b7ogo:l2kdxdbdx2sg"
 
     for email, password in email_list:
         imap_server = get_imap_server(email, config)
