@@ -1,5 +1,5 @@
 {
-    "threads": 10,
+    "threads": 50,
     "retry_attempts": 5,
-    "retry_timeout": 10
+    "retry_timeout": 0.5
 }
