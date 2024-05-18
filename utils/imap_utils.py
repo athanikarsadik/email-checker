@@ -2,6 +2,13 @@ import imaplib
 import socket
 import time
 
+import threading
+
+# Create locks for thread safety
+output_lock = threading.Lock()
+retry_lock = threading.Lock()  # Lock for retry attempts
+retry_counts = {}  # Dictionary to store retry counts for each email
+
 def get_imap_server(email, config):
     """Gets the IMAP server address for an email address.
 
@@ -33,7 +40,7 @@ def discover_imap_server(domain, config):
     """
 
     prefixes = ["imap.", "mail."]
-    fallback_server = "imap.gmail.com"
+    fallback_servers = ["outlook.live.com", "imap.gmail.com"] 
 
     for prefix in prefixes:
         server = f"{prefix}{domain}"
@@ -41,11 +48,13 @@ def discover_imap_server(domain, config):
             update_imap_providers(config, domain, server)
             return server
 
-    if test_imap_connection(fallback_server, config):
-        update_imap_providers(config, domain, fallback_server)
-        return fallback_server
+    # If prefixes fail, try fallback servers
+    for server in fallback_servers:
+        if test_imap_connection(server, config):
+            update_imap_providers(config, domain, server)
+            return server
 
-    return None
+    return None 
 
 def test_imap_connection(server, config):
     """Tests the IMAP connection to a server.
@@ -83,7 +92,7 @@ def update_imap_providers(config, domain, server):
     save_config(config)
     print(f"IMAP server for {domain} updated to {server} in config file.")
     
-def validate_email(email, password, imap_server, config):
+def validate_email(email, password, imap_server, config, output_lock):
     """Validates an email address by attempting to log in to the IMAP server.
 
     Args:
@@ -95,21 +104,27 @@ def validate_email(email, password, imap_server, config):
     Returns:
         bool: True if the email is valid (login successful), False otherwise.
     """
-
+    
     for attempt in range(config["retry_attempts"]):
-        try:
-            with imaplib.IMAP4_SSL(imap_server) as imap:
-                imap.login(email, password)
-                imap.logout()
-                return True  # Login successful
-        except imaplib.IMAP4.error as e:
-            if "Invalid credentials" in str(e):
-                return False  # Invalid credentials, no need to retry
-            else:
-                print(f"Login error for {email}: {e}. Retrying...")
-                time.sleep(config["retry_timeout"])
-        except (socket.gaierror, socket.timeout) as e:
-            print(f"Connection error for {email}: {e}. Retrying...")
-            time.sleep(config["retry_timeout"])
+        with retry_lock:
+            if email not in retry_counts:
+                retry_counts[email] = 0
+            retry_counts[email] += 1
+            attempt = retry_counts[email]
 
-    return False  # Login failed after all retries
+        with output_lock:
+            print(f"{attempt} times Retried... preparing next retry for {email}")
+            try:
+                with imaplib.IMAP4_SSL(imap_server) as imap:
+                    imap.login(email, password)
+                    imap.logout()
+                    return True  # Login successful
+            except (socket.gaierror, socket.timeout) as e:  # Retry only on these errors
+                print(f"Connection error for {email}: {e}. Retrying...")
+                time.sleep(config["retry_timeout"])
+            except imaplib.IMAP4.error as e:
+                print(f"IMAP error for {email}: {e}. Not retrying.")
+                return False # Stop if not connection error
+    with output_lock:  # Acquire lock before printing max retry message
+        print(f"Max retry for {email}. Adding to bad.txt")
+    return False 

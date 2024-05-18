@@ -18,7 +18,9 @@ def load_email_list(input_file="data/input.txt"):
     email_list = []
     with open(input_file, "r") as f:
         for line in f:
-            email, password = line.strip().split(":")
+            parts = line.strip().split(":")
+            email = parts[0]
+            password = parts[1]  # Take the first password
             email_list.append((email, password))
     return email_list
 
@@ -59,7 +61,7 @@ def process_email_chunk(email_chunk, config):
         imap_server = get_imap_server(email, config)
 
         if imap_server:
-            is_valid = validate_email(email, password, imap_server, config)
+            is_valid = validate_email(email, password, imap_server, config, output_lock)
             with output_lock:  # Acquire the lock before writing output
                 if is_valid:
                     print(f"Email {email} is VALID!")
