@@ -28,7 +28,6 @@ def load_config(config_file="data/config.json", imap_file="data/imap_provider.js
     # Define default values for configuration settings
     config = {
         "imap_providers": imap_providers,
-        "proxy": config_data.get("proxy", None),
         "threads": config_data.get("threads", 1),
         "retry_attempts": config_data.get("retry_attempts", 3),
         "retry_timeout": config_data.get("retry_timeout", 5)
