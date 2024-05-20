@@ -1,6 +1,5 @@
 {
     "threads": 50,
     "retry_attempts": 1,
-    "retry_timeout": 0.1,
-    "proxy": "104.243.45.62:4000:datacenter--uname--arara669i7r6yn0b7ogo:l2kdxdbdx2sg"
+    "retry_timeout": 0.1
 }

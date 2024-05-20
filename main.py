@@ -4,10 +4,9 @@ from multiprocessing import Pool, Manager
 import time
 import re
 
-def load_processed_emails(config,valid_file="data/valid.txt", bad_file="data/bad.txt",imapissue="data/imapissue.txt"):
+def load_processed_emails(valid_file="data/valid.txt", bad_file="data/bad.txt",imapissue="data/imapissue.txt"):
     """Loads processed email:password combinations from valid.txt and bad.txt."""
     processed_emails = set()
-    print("Loading, preprocessing and updating imap_provider.json from input.txt")
     for filename in [valid_file, bad_file,imapissue]:
         try:
             with open(filename, "r") as f:
@@ -17,7 +16,6 @@ def load_processed_emails(config,valid_file="data/valid.txt", bad_file="data/bad
                         parts = line.split(":")
                         email = parts[0]
                         password = ":".join(parts[1:]) 
-                        get_imap_server(email, config)
                         processed_emails.add(f"{email}:{password}")
         except FileNotFoundError:
             pass  # Ignore if files don't exist
@@ -30,18 +28,19 @@ def load_proxy(proxy="data/proxy.txt"):
             proxy_list.append(line)
     return proxy_list
 
-def load_email_list(input_file="data/input.txt"):
+def load_email_list(config,input_file="data/input.txt"):
     """Loads email:password combinations from the input file, 
        ignoring lines that don't match the expected format.
     """
     email_list = []
-    config = load_config()
+    print("Loading, preprocessing and updating imap_provider.json from input.txt")
     with open(input_file, "r") as f:
         for line in f:
             line = line.strip()
             if re.match(r"^.+\:.+$", line):  # Check if line contains at least one ':'
                 parts = line.split(":")
                 email = parts[0]
+                get_imap_server(email, config)
                 password = ":".join(parts[1:])  # Join multiple passwords if present
                 email_list.append((email, password))
     return email_list
@@ -75,11 +74,10 @@ def process_email(email_data, config, processed_emails):
 if __name__ == "__main__":
     start_time = time.time()
     config = load_config()
-    email_list = load_email_list()
-    processed_emails = load_processed_emails(config)
+    email_list = load_email_list(config)
+    processed_emails = load_processed_emails()
     print("Preprocessing done, validating emails!")
     load_proxy()
-    print(len(processed_emails))
 
     with Manager() as manager:
         # Create a shared list from the processed emails
