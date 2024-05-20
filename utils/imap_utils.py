@@ -74,7 +74,7 @@ def test_imap_connection(server, config):
 
     for attempt in range(config["retry_attempts"]):
         try:
-            with imaplib.IMAP4_SSL(server) as imap:
+            with imaplib.IMAP4_SSL(server,timeout=1) as imap:
                 return True  # Connection successful, regardless of login
         except (imaplib.IMAP4.error, socket.gaierror, socket.timeout) as e:
             print(f"Connection error to {server}: {e}. Retrying (attempt {attempt}/{config['retry_attempts']})...")
@@ -100,7 +100,7 @@ def validate_email(email, password, imap_server, config):
     """Validates an email address by attempting to log in to the IMAP server."""
     for attempt in range(config["retry_attempts"]):
         try:
-            with imaplib.IMAP4_SSL(imap_server) as imap:
+            with imaplib.IMAP4_SSL(imap_server,) as imap:
                 imap.login(email, password)
                 imap.logout()
                 return True  # Login successful

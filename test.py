@@ -25,6 +25,7 @@ mail.select('inbox')
 
 result, data = mail.uid('SEARCH', None, search_string(uid_max, criteria))
 uids = [int(s) for s in data[0].split()]
+
 if uids:
     uid_max = max(uids)
 mail.logout()
